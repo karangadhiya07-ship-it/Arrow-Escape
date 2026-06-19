@@ -71,29 +71,44 @@ function rnd(seed){let x=Math.sin(seed)*10000;return x-Math.floor(x)}
 function gen(lv){
   let arr=[];
   let id=0;
+  let seed=lv*12345;
+  let shapes=["square","circle","diamond","cross","spiral"];
+  let shape=shapes[(lv-1)%shapes.length];
 
   for(let y=0;y<N;y++){
-    arr.push({x:0,y:y,d:"left",id:id++});
-    arr.push({x:N-1,y:y,d:"right",id:id++});
-  }
+    for(let x=0;x<N;x++){
+      let cx=x-(N-1)/2;
+      let cy=y-(N-1)/2;
+      let use=false;
 
-  for(let x=1;x<N-1;x++){
-    arr.push({x:x,y:0,d:"up",id:id++});
-    arr.push({x:x,y:N-1,d:"down",id:id++});
-  }
+      if(shape==="square") use=true;
+      if(shape==="circle") use=(cx*cx+cy*cy)<=10;
+      if(shape==="diamond") use=(Math.abs(cx)+Math.abs(cy))<=4;
+      if(shape==="cross") use=(x===3 || y===3 || Math.abs(cx)+Math.abs(cy)<=2);
+      if(shape==="spiral") use=(x===0||y===0||x===N-1||y===N-1||x===2||y===2);
 
-  let extra=Math.min(18, Math.floor(lv*1.5));
-  let names=["up","right","down","left"];
-  let seed=lv*999;
+      if(!use) continue;
 
-  for(let i=0;i<extra;i++){
-    let x=1+Math.floor(rnd(seed+i*7)*(N-2));
-    let y=1+Math.floor(rnd(seed+i*13)*(N-2));
+      let d;
+      if(x===0)d="left";
+      else if(x===N-1)d="right";
+      else if(y===0)d="up";
+      else if(y===N-1)d="down";
+      else{
+        let dirsList=["up","right","down","left"];
+        d=dirsList[Math.floor(rnd(seed+x*17+y*29)*4)];
+      }
 
-    if(arr.some(a=>a.x==x && a.y==y)) continue;
+      let size=34+Math.floor(rnd(seed+x*31+y*43)*20);
 
-    let d=names[Math.floor(rnd(seed+i*19)*4)];
-    arr.push({x,y,d,id:id++});
+      arr.push({
+        x:x,
+        y:y,
+        d:d,
+        id:id++,
+        size:size
+      });
+    }
   }
 
   return arr;
@@ -128,6 +143,7 @@ function draw(){
     let e=document.createElement("div");
     e.className="arrow";
     e.innerText=dirs[a.d][2];
+    e.style.fontSize=(a.size || 44)+"px";
     e.dataset.id=a.id;
     e.style.left=a.x*s+s/2-20+"px";
     e.style.top=a.y*s+s/2-20+"px";
