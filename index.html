@@ -17,7 +17,7 @@ body{height:100vh;background:#fff;overflow:hidden}
 .tip{margin:10px auto;width:230px;text-align:center;border:2px solid #d5e0ff;border-radius:8px;padding:7px;font-weight:800}
 .stage{flex:1;display:flex;align-items:center;justify-content:center;position:relative}
 .board{width:min(86vw,420px);height:min(86vw,420px);position:relative}
-.dot{position:absolute;width:4px;height:4px;background:#999;border-radius:50%;opacity:.55}
+.dot{position:absolute;width:2px;height:2px;background:#bcbcbc;border-radius:50%;opacity:.35}
 .arrow{position:absolute;width:44px;height:44px;display:flex;align-items:center;justify-content:center;font-weight:900;cursor:pointer;transition:.3s;line-height:1}
 .arrow.bad{animation:shake .25s linear 2}
 @keyframes shake{25%{transform:translateX(-8px)}50%{transform:translateX(8px)}75%{transform:translateX(-5px)}}
@@ -31,6 +31,7 @@ body{height:100vh;background:#fff;overflow:hidden}
 .small{font-size:11px;opacity:.75}
 </style>
 </head>
+
 <body>
 <div class="game">
   <div class="top">
@@ -38,24 +39,45 @@ body{height:100vh;background:#fff;overflow:hidden}
     <div class="level">Level <span id="lv">1</span><div class="hearts" id="hp">♥♥♥</div></div>
     <button class="round" onclick="openLevels()">☰</button>
   </div>
+
   <div class="tip" id="tip">Tap clear arrow</div>
+
   <div class="stage">
     <div class="board" id="board"></div>
-    <div class="modal" id="modal"><div class="box"><h2 id="mt">Level Clear!</h2><p id="md">Next level unlocked.</p><br><button class="btn blue" onclick="nextLevel()">Next Level</button></div></div>
-    <div class="levelPanel" id="levelPanel"><div style="width:100%"><h2>500 Levels</h2><p class="small">Countries, states, animals, birds, fruits and more.</p><div class="levelGrid" id="levelGrid"></div><br><button class="btn red" style="width:100%" onclick="closeLevels()">Back</button></div></div>
+
+    <div class="modal" id="modal">
+      <div class="box">
+        <h2 id="mt">Level Clear!</h2>
+        <p id="md">Next level unlocked.</p><br>
+        <button class="btn blue" onclick="nextLevel()">Next Level</button>
+      </div>
+    </div>
+
+    <div class="levelPanel" id="levelPanel">
+      <div style="width:100%">
+        <h2>500 Levels</h2>
+        <p class="small">Countries, states, animals, birds, fruits and more.</p>
+        <div class="levelGrid" id="levelGrid"></div>
+        <br><button class="btn red" style="width:100%" onclick="closeLevels()">Back</button>
+      </div>
+    </div>
   </div>
+
   <div class="footer">
     <button class="btn red" onclick="restart()">Retry</button>
     <button class="btn blue" onclick="hint()">Hint</button>
     <button class="btn" onclick="resetProgress()">Reset</button>
   </div>
 </div>
+
 <script>
 const N=9;
 const board=document.getElementById("board");
 const dirs={up:[0,-1,"↑"],right:[1,0,"→"],down:[0,1,"↓"],left:[-1,0,"←"]};
+
 let saved=JSON.parse(localStorage.getItem("arrowEscapeThemeSave")||"{}");
-let level=saved.level||1, unlocked=saved.unlocked||1;
+let level=saved.level||1;
+let unlocked=saved.unlocked||1;
 let hp=3, arrows=[], busy=false;
 
 const countries=["India","USA","Japan","Brazil","Canada","Australia","France","Italy","Egypt","China","Nepal","UAE","Germany","Spain","Mexico","UK","Russia","Thailand","Kenya","South Africa"];
@@ -63,28 +85,47 @@ const states=["Gujarat","Maharashtra","Rajasthan","Punjab","Kerala","Goa","Tamil
 const animals=["Tiger","Lion","Elephant","Panda","Horse","Wolf","Fox","Deer","Giraffe","Zebra","Kangaroo","Bear","Rabbit","Camel","Monkey","Rhino","Leopard","Cat","Dog","Bull"];
 const birds=["Peacock","Eagle","Parrot","Swan","Owl","Flamingo","Penguin","Kingfisher","Sparrow","Dove","Falcon","Duck","Hen","Crow","Hornbill","Crane","Pigeon","Woodpecker","Toucan","Ostrich"];
 const fruits=["Mango","Apple","Banana","Orange","Grapes","Pineapple","Strawberry","Watermelon","Cherry","Kiwi","Papaya","Guava","Pear","Coconut","Lemon","Peach","Plum","Fig","Date","Pomegranate"];
-const flowers=["Lotus","Rose","Sunflower","Lily","Jasmine","Tulip","Marigold","Orchid","Daisy","Hibiscus"];
-const monuments=["Taj Mahal","Statue of Unity","Eiffel Tower","Pyramid","Big Ben","Burj Khalifa","Great Wall","Red Fort","Gateway India","Qutub Minar"];
-const pools=[countries,states,animals,birds,fruits,flowers,monuments];
+const pools=[countries,states,animals,birds,fruits];
+
 const shapeList=["square","circle","diamond","cross","heart","triangle","plus","ring","xshape","flower"];
 
-function save(){localStorage.setItem("arrowEscapeThemeSave",JSON.stringify({level,unlocked}))}
-function rnd(seed){let x=Math.sin(seed)*10000;return x-Math.floor(x)}
-function themeName(lv){let pool=pools[Math.floor((lv-1)/50)%pools.length];return pool[(lv-1)%pool.length]}
-function shapeName(lv){return shapeList[(lv-1)%shapeList.length]}
+function save(){
+  localStorage.setItem("arrowEscapeThemeSave",JSON.stringify({level,unlocked}));
+}
+
+function rnd(seed){
+  let x=Math.sin(seed)*10000;
+  return x-Math.floor(x);
+}
+
+function themeName(lv){
+  let pool=pools[Math.floor((lv-1)/50)%pools.length];
+  return pool[(lv-1)%pool.length];
+}
+
+function shapeName(lv){
+  return shapeList[(lv-1)%shapeList.length];
+}
 
 function inShape(x,y,shape){
   let c=(N-1)/2, cx=x-c, cy=y-c;
+
   if(shape==="square") return true;
   if(shape==="circle") return cx*cx+cy*cy<=16;
   if(shape==="diamond") return Math.abs(cx)+Math.abs(cy)<=5;
   if(shape==="cross") return x===4 || y===4 || Math.abs(cx)+Math.abs(cy)<=2;
-  if(shape==="heart"){let X=cx/4,Y=-cy/4;return Math.pow(X*X+Y*Y-1,3)-X*X*Y*Y*Y<=0.35}
+
+  if(shape==="heart"){
+    let X=cx/4, Y=-cy/4;
+    return Math.pow(X*X+Y*Y-1,3)-X*X*Y*Y*Y<=0.35;
+  }
+
   if(shape==="triangle") return y>=2 && Math.abs(cx)<=y-1;
   if(shape==="plus") return (x>=3&&x<=5)||(y>=3&&y<=5);
   if(shape==="ring") return cx*cx+cy*cy<=17 && cx*cx+cy*cy>=5;
   if(shape==="xshape") return Math.abs(cx-cy)<=1 || Math.abs(cx+cy)<=1;
   if(shape==="flower") return cx*cx+cy*cy<=6 || ((Math.abs(cx)==3&&Math.abs(cy)<=1)||(Math.abs(cy)==3&&Math.abs(cx)<=1));
+
   return true;
 }
 
@@ -96,88 +137,184 @@ function outwardDir(x,y){
 
 function gen(lv){
   let arr=[], id=0, seed=lv*12345, shape=shapeName(lv);
+
   for(let y=0;y<N;y++){
     for(let x=0;x<N;x++){
       if(!inShape(x,y,shape)) continue;
+
       let d=outwardDir(x,y);
-      if(lv>25 && rnd(seed+x*31+y*17)>.78){
+
+      if(lv>25 && rnd(seed+x*31+y*17)>.82){
         let all=["up","right","down","left"];
         d=all[Math.floor(rnd(seed+x*91+y*43)*4)];
       }
-      let size=28+Math.floor(rnd(seed+x*47+y*59)*20);
+
+      let size=28+Math.floor(rnd(seed+x*47+y*59)*18);
       if(x===0||y===0||x===N-1||y===N-1) size+=5;
+
       arr.push({x,y,d,id:id++,size});
     }
   }
+
   return arr;
 }
 
-function cell(){return board.clientWidth/N}
+function cell(){
+  return board.clientWidth/N;
+}
+
 function load(){
-  hp=3;busy=false;arrows=gen(level);
+  hp=3;
+  busy=false;
+  arrows=gen(level);
+
   document.getElementById("lv").innerText=level+" - "+themeName(level);
   document.getElementById("hp").innerText="♥♥♥";
   document.getElementById("tip").innerText=shapeName(level).toUpperCase()+" SHAPE";
   document.getElementById("modal").style.display="none";
+
   draw();
 }
+
 function draw(){
   board.innerHTML="";
   let s=cell();
-  for(let y=0;y<N;y++)for(let x=0;x<N;x++){
-    let d=document.createElement("div");d.className="dot";d.style.left=x*s+s/2-2+"px";d.style.top=y*s+s/2-2+"px";board.appendChild(d);
+  let shape=shapeName(level);
+
+  for(let y=0;y<N;y++){
+    for(let x=0;x<N;x++){
+      if(!inShape(x,y,shape)) continue;
+
+      let d=document.createElement("div");
+      d.className="dot";
+      d.style.left=x*s+s/2-1+"px";
+      d.style.top=y*s+s/2-1+"px";
+      board.appendChild(d);
+    }
   }
+
   arrows.forEach(a=>{
     let e=document.createElement("div");
-    e.className="arrow";e.innerText=dirs[a.d][2];e.dataset.id=a.id;
+    e.className="arrow";
+    e.innerText=dirs[a.d][2];
+    e.dataset.id=a.id;
     e.style.fontSize=(a.size||38)+"px";
-    e.style.left=a.x*s+s/2-22+"px";e.style.top=a.y*s+s/2-22+"px";
-    e.onclick=()=>tap(a.id);board.appendChild(e);
+
+    e.style.left=a.x*s+s/2-(a.size||38)/2+"px";
+    e.style.top=a.y*s+s/2-(a.size||38)/2+"px";
+
+    e.onclick=()=>tap(a.id);
+    board.appendChild(e);
   });
 }
+
 function blockedBy(a,b,dx,dy){
   if(dx!==0) return b.y===a.y && ((dx>0&&b.x>a.x)||(dx<0&&b.x<a.x));
   return b.x===a.x && ((dy>0&&b.y>a.y)||(dy<0&&b.y<a.y));
 }
+
 function tap(id){
   if(busy)return;
-  let a=arrows.find(v=>v.id===id); if(!a)return;
+
+  let a=arrows.find(v=>v.id===id);
+  if(!a)return;
+
   let [dx,dy]=dirs[a.d];
+
   let blocked=arrows.find(b=>b.id!==a.id && blockedBy(a,b,dx,dy));
   let el=[...document.querySelectorAll(".arrow")].find(e=>+e.dataset.id===id);
+
   if(blocked){
-    hp--;document.getElementById("hp").innerText="♥".repeat(hp);
+    hp--;
+    document.getElementById("hp").innerText="♥".repeat(hp);
     document.getElementById("tip").innerText="Blocked! Try another arrow";
-    el.classList.add("bad");setTimeout(()=>el.classList.remove("bad"),500);
+
+    el.classList.add("bad");
+    setTimeout(()=>el.classList.remove("bad"),500);
+
     if(hp<=0)setTimeout(()=>show("Game Over","Retry this level."),350);
     return;
   }
+
   busy=true;
+
   let dist=board.clientWidth*1.25;
-  el.style.transform=`translate(${dx*dist}px,${dy*dist}px)`;el.style.opacity="0";
+  el.style.transform=`translate(${dx*dist}px,${dy*dist}px)`;
+  el.style.opacity="0";
+
   setTimeout(()=>{
-    arrows=arrows.filter(v=>v.id!==id);busy=false;draw();
+    arrows=arrows.filter(v=>v.id!==id);
+    busy=false;
+    draw();
+
     document.getElementById("tip").innerText=arrows.length+" arrows left";
+
     if(arrows.length===0)clearLevel();
   },300);
 }
-function clearLevel(){unlocked=Math.max(unlocked,level+1);save();show("Level Clear!","Next: "+themeName(Math.min(level+1,500)))}
-function show(t,d){document.getElementById("mt").innerText=t;document.getElementById("md").innerText=d;document.getElementById("modal").style.display="flex"}
-function nextLevel(){if(level<500)level++;unlocked=Math.max(unlocked,level);save();load()}
-function restart(){load()}
-function hint(){document.getElementById("tip").innerText="Outer arrows usually clear first."}
+
+function clearLevel(){
+  unlocked=Math.max(unlocked,level+1);
+  save();
+  show("Level Clear!","Next: "+themeName(Math.min(level+1,500)));
+}
+
+function show(t,d){
+  document.getElementById("mt").innerText=t;
+  document.getElementById("md").innerText=d;
+  document.getElementById("modal").style.display="flex";
+}
+
+function nextLevel(){
+  if(level<500)level++;
+  unlocked=Math.max(unlocked,level);
+  save();
+  load();
+}
+
+function restart(){load();}
+
+function hint(){
+  document.getElementById("tip").innerText="Outer arrows usually clear first.";
+}
+
 function openLevels(){
-  const g=document.getElementById("levelGrid");g.innerHTML="";
+  const g=document.getElementById("levelGrid");
+  g.innerHTML="";
+
   for(let i=1;i<=500;i++){
-    let b=document.createElement("button");b.innerHTML=i+"<br><span class='small'>"+themeName(i)+"</span>";
+    let b=document.createElement("button");
+    b.innerHTML=i+"<br><span class='small'>"+themeName(i)+"</span>";
     b.style.opacity=i<=unlocked?1:.35;
-    b.onclick=()=>{if(i<=unlocked){level=i;save();closeLevels();load()}};
+
+    b.onclick=()=>{
+      if(i<=unlocked){
+        level=i;
+        save();
+        closeLevels();
+        load();
+      }
+    };
+
     g.appendChild(b);
   }
+
   document.getElementById("levelPanel").style.display="flex";
 }
-function closeLevels(){document.getElementById("levelPanel").style.display="none"}
-function resetProgress(){if(confirm("Reset game progress?")){level=1;unlocked=1;save();load()}}
+
+function closeLevels(){
+  document.getElementById("levelPanel").style.display="none";
+}
+
+function resetProgress(){
+  if(confirm("Reset game progress?")){
+    level=1;
+    unlocked=1;
+    save();
+    load();
+  }
+}
+
 window.addEventListener("resize",draw);
 load();
 </script>
