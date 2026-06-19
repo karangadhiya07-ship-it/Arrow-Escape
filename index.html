@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>Arrow Escape India Level</title>
+<title>Arrow Escape India 60</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;font-family:Arial,Helvetica,sans-serif}
 body{height:100vh;background:#fff;overflow:hidden;color:#111735}
@@ -12,10 +12,10 @@ body{height:100vh;background:#fff;overflow:hidden;color:#111735}
 .round{width:44px;height:44px;border:0;border-radius:50%;background:#b8bbd4;font-size:22px;font-weight:900}
 .level{min-width:220px;background:#aeb1ca;color:#fff;border-radius:8px;padding:7px 10px;text-align:center;font-weight:900;text-shadow:1px 1px #000}
 .hearts{color:#f0183c;font-size:18px;letter-spacing:3px;margin-top:2px}
-.tip{margin:10px auto 0;width:250px;border:2px solid #d7e2ff;border-radius:10px;padding:8px;text-align:center;font-weight:900}
+.tip{margin:10px auto 0;width:260px;border:2px solid #d7e2ff;border-radius:10px;padding:8px;text-align:center;font-weight:900}
 .stage{flex:1;display:flex;align-items:center;justify-content:center;position:relative}
 .board{width:min(94vw,470px);height:min(94vw,470px);position:relative}
-.arrow{position:absolute;display:flex;align-items:center;justify-content:center;font-weight:900;line-height:1;cursor:pointer;transition:.22s;color:#111735;user-select:none}
+.arrow{position:absolute;display:flex;align-items:center;justify-content:center;font-weight:900;line-height:1;cursor:pointer;transition:.20s;color:#111735;user-select:none}
 .arrow.bad{animation:shake .22s linear 2}
 @keyframes shake{25%{transform:translateX(-5px)}50%{transform:translateX(5px)}75%{transform:translateX(-3px)}}
 .footer{height:84px;background:#deddf4;display:flex;align-items:center;justify-content:center;gap:10px}
@@ -54,51 +54,71 @@ body{height:100vh;background:#fff;overflow:hidden;color:#111735}
 
 <script>
 const board=document.getElementById("board");
-const N=40;
+const N=60;
 const dirs={up:[0,-1,"↑"],right:[1,0,"→"],down:[0,1,"↓"],left:[-1,0,"←"]};
 let hp=3, arrows=[], busy=false;
 
 const indiaMask=[
-  ".......XXXXX............................",
-  ".......XXXXXXXXXX.......................",
-  ".......XXXXXXXXXX.......................",
-  "........XXXXXXXXX.......................",
-  "........XXXXXXXX........................",
-  "........XXXXXXXXX.......................",
-  "........XXXXXXXX........................",
-  ".........XXXXXXXX.................XXX...",
-  ".........XXXXXXXXX..............XXXXXX..",
-  "........XXXXXXXXXXX.............XXXXXX..",
-  "........XXXXXXXXXX........XX..XXXXXXXX..",
-  ".......XXXXXXXXXXXXX......XX..XXXXXXX...",
-  "....XXXXXXXXXXXXXXXXXXXX..XXXXXXXXXX....",
-  "...XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX....",
-  "...XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX....",
-  "....XXXXXXXXXXXXXXXXXXXXXXXXX.XXXXXX....",
-  ".....XXXXXXXXXXXXXXXXXXXXXXXX.XXXXX.....",
-  "..XXXXXXXXXXXXXXXXXXXXXXXXXXX..XXXX.....",
-  "..XXXXXXXXXXXXXXXXXXXXXXXXXXXX...XX.....",
-  "..XXXXXXXXXXXXXXXXXXXXXXXXXXXX..........",
-  "...XXXXXXXXXXXXXXXXXXXXXXXXXX...........",
-  "...XXXXXXXXXXXXXXXXXXXXXXXX.............",
-  "....XXXXXXXXXXXXXXXXXXXXXXX.............",
-  ".....XX.XXXXXXXXXXXXXXXXXX..............",
-  "........XXXXXXXXXXXXXXXXX...............",
-  "........XXXXXXXXXXXXXXXX................",
-  "........XXXXXXXXXXXXXXX.................",
-  "........XXXXXXXXXXXXXX..................",
-  "........XXXXXXXXXXXXX...................",
-  ".........XXXXXXXXXXX....................",
-  ".........XXXXXXXXXX.....................",
-  "..........XXXXXXXXXX....................",
-  "..........XXXXXXXXXX....................",
-  "...........XXXXXXXXX....................",
-  "...........XXXXXXXX.....................",
-  "............XXXXXXXX....................",
-  "............XXXXXXXX....................",
-  ".............XXXXXX.....................",
-  ".............XXXXXX.....................",
-  "..............XXX......................."
+  "............XXXXXX..........................................",
+  "...........XXXXXXXX...XX....................................",
+  "..........XXXXXXXXXXXXXXXX..................................",
+  "..........XXXXXXXXXXXXXXXX..................................",
+  "............XXXXXXXXXXXXXX..................................",
+  "............XXXXXXXXXXXXX...................................",
+  "............XXXXXXXXXXXXX...................................",
+  "............XXXXXXXXXXXXX...................................",
+  "............XXXXXXXXXXXXX...................................",
+  "............XXXXXXXXXXXXX...................................",
+  "..............XXXXXXXXXX.............................X......",
+  "..............XXXXXXXXXXX.........................XXXXX.....",
+  "..............XXXXXXXXXXXXX......................XXXXXXXX...",
+  ".............XXXXXXXXXXXXXXX....................XXXXXXXXX...",
+  "............XXXXXXXXXXXXXXXX...................XXXXXXXXXX...",
+  "............XXXXXXXXXXXXXXX.............XX....XXXXXXXXXXX...",
+  "...........XXXXXXXXXXXXXXXXX...........XXX...XXXXXXXXXXXX...",
+  "..........XXXXXXXXXXXXXXXXXXXX.........XXXX.XXXXXXXXXXX.....",
+  ".......XXXXXXXXXXXXXXXXXXXXXXXXXXXX....XXXXXXXXXXXXXXX......",
+  "......XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX......",
+  ".....XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX......",
+  ".....XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX......",
+  ".....XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX......",
+  "......XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX...XXXXXXX.......",
+  ".......XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX...XXXXXX........",
+  "........XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX..XXXXXX........",
+  "...XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX..XXXXXX........",
+  "...XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX.....XXX........",
+  "...XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX....XX.........",
+  "...XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX...............",
+  "....XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX................",
+  "....XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX...................",
+  ".....XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX...................",
+  "......XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX....................",
+  ".......XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX....................",
+  "...........XXXXXXXXXXXXXXXXXXXXXXXXXXX......................",
+  "...........XXXXXXXXXXXXXXXXXXXXXXXXXX.......................",
+  "............XXXXXXXXXXXXXXXXXXXXXXXX........................",
+  "............XXXXXXXXXXXXXXXXXXXXXXXX........................",
+  "............XXXXXXXXXXXXXXXXXXXXXXX.........................",
+  "............XXXXXXXXXXXXXXXXXXXXXX..........................",
+  ".............XXXXXXXXXXXXXXXXXXXX...........................",
+  ".............XXXXXXXXXXXXXXXXXXX............................",
+  ".............XXXXXXXXXXXXXXXXX..............................",
+  ".............XXXXXXXXXXXXXXXX...............................",
+  "..............XXXXXXXXXXXXXXX...............................",
+  "..............XXXXXXXXXXXXXXX...............................",
+  "...............XXXXXXXXXXXXXX...............................",
+  "................XXXXXXXXXXXXX...............................",
+  "................XXXXXXXXXXXXX...............................",
+  "................XXXXXXXXXXXXX...............................",
+  ".................XXXXXXXXXXXX...............................",
+  ".................XXXXXXXXXXXX...............................",
+  "..................XXXXXXXXXXX...............................",
+  "...................XXXXXXXXXX...............................",
+  "...................XXXXXXXXX................................",
+  "...................XXXXXXXXXX...............................",
+  "....................XXXXXXXXX...............................",
+  "....................XXXXXX..................................",
+  ".....................XXXXX.................................."
 ];
 
 function rnd(seed){let x=Math.sin(seed)*10000;return x-Math.floor(x)}
@@ -113,6 +133,15 @@ function outward(x,y){
   return dy>=0?"down":"up";
 }
 
+function isBorderCell(x,y){
+  for(let yy=-1; yy<=1; yy++){
+    for(let xx=-1; xx<=1; xx++){
+      if(!inIndia(x+xx,y+yy)) return true;
+    }
+  }
+  return false;
+}
+
 function generate(){
   let arr=[], id=0, seed=101;
 
@@ -120,18 +149,19 @@ function generate(){
     for(let x=0;x<N;x++){
       if(!inIndia(x,y)) continue;
 
-      // 200-300 arrows approx, keeping India shape clear
-      if(rnd(seed+x*31+y*37)>0.72) continue;
+      // 60x60 ma 700-900 arrows approx; shape clear dekhase
+      if(rnd(seed+x*31+y*37)>0.68) continue;
 
+      let border=isBorderCell(x,y);
       let d=outward(x,y);
 
-      // inner arrows thoda random for puzzle
-      if(x>4&&x<N-5&&y>4&&y<N-5&&rnd(seed+x*17+y*23)>0.82){
+      // Border arrows always outside; only inner arrows random
+      if(!border && rnd(seed+x*17+y*23)>0.84){
         let all=["up","right","down","left"];
         d=all[Math.floor(rnd(seed+x*13+y*29)*4)];
       }
 
-      arr.push({x,y,d,id:id++});
+      arr.push({x,y,d,border,id:id++});
     }
   }
   return arr;
@@ -157,8 +187,10 @@ function draw(){
     e.innerText=dirs[a.d][2];
     e.dataset.id=a.id;
 
-    let length=9+Math.floor(rnd(999+a.x*31+a.y*17)*8);
-    let size=Math.max(9,Math.min(17,length));
+    let length=5+Math.floor(rnd(999+a.x*31+a.y*17)*5);
+    if(a.border) length += 2;
+    let size=Math.max(5,Math.min(12,length));
+
     e.style.fontSize=size+"px";
     e.style.width=length+"px";
     e.style.height=length+"px";
@@ -189,7 +221,7 @@ function tap(id){
     document.getElementById("hearts").innerText="♥".repeat(hp);
     document.getElementById("tip").innerText="Blocked! Outer arrows first";
     el.classList.add("bad");
-    setTimeout(()=>el.classList.remove("bad"),350);
+    setTimeout(()=>el.classList.remove("bad"),300);
     if(hp<=0)setTimeout(()=>show("Game Over","Retry India level."),250);
     return;
   }
@@ -205,7 +237,7 @@ function tap(id){
     draw();
     document.getElementById("tip").innerText="India Map • "+arrows.length+" arrows left";
     if(arrows.length===0)show("Level Clear!","India level complete.");
-  },190);
+  },160);
 }
 
 function show(t,d){
@@ -215,7 +247,7 @@ function show(t,d){
 }
 
 function restart(){load()}
-function hint(){document.getElementById("tip").innerText="Clear arrows facing outside first."}
+function hint(){document.getElementById("tip").innerText="Border arrows face outside. Clear them first."}
 
 window.addEventListener("resize",draw);
 load();
