@@ -69,18 +69,36 @@ const manual=[
 function rnd(seed){let x=Math.sin(seed)*10000;return x-Math.floor(x)}
 
 function gen(lv){
-  if(lv<=manual.length)return manual[lv-1].map((a,i)=>({...a,id:i}));
-  let arr=[], seed=lv*999, count=Math.min(28,5+Math.floor(lv/2));
-  let names=["up","right","down","left"];
-  for(let i=0;i<count;i++){
-    let x=Math.floor(rnd(seed+i*7)*N);
-    let y=Math.floor(rnd(seed+i*13)*N);
-    if(arr.some(a=>a.x==x&&a.y==y)){i--;continue}
-    arr.push({x,y,d:names[Math.floor(rnd(seed+i*19)*4)],id:i});
+  let arr=[];
+  let id=0;
+
+  for(let y=0;y<N;y++){
+    arr.push({x:0,y:y,d:"left",id:id++});
+    arr.push({x:N-1,y:y,d:"right",id:id++});
   }
+
+  for(let x=1;x<N-1;x++){
+    arr.push({x:x,y:0,d:"up",id:id++});
+    arr.push({x:x,y:N-1,d:"down",id:id++});
+  }
+
+  let extra=Math.min(18, Math.floor(lv*1.5));
+  let names=["up","right","down","left"];
+  let seed=lv*999;
+
+  for(let i=0;i<extra;i++){
+    let x=1+Math.floor(rnd(seed+i*7)*(N-2));
+    let y=1+Math.floor(rnd(seed+i*13)*(N-2));
+
+    if(arr.some(a=>a.x==x && a.y==y)) continue;
+
+    let d=names[Math.floor(rnd(seed+i*19)*4)];
+    arr.push({x,y,d,id:id++});
+  }
+
   return arr;
 }
-
+  
 function size(){return board.clientWidth/N}
 
 function load(){
