@@ -1,14 +1,182 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Test</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Arrow Escape</title>
 <style>
-body{background:white;font-family:Arial;text-align:center;padding-top:100px}
-h1{color:red;font-size:40px}
+*{box-sizing:border-box;margin:0;padding:0;font-family:Arial}
+body{height:100vh;background:#fff;overflow:hidden}
+.game{max-width:520px;height:100vh;margin:auto;display:flex;flex-direction:column;background:white}
+.top{height:85px;background:#deddf4;display:flex;align-items:center;justify-content:center;gap:60px}
+.btn{border:0;border-radius:12px;padding:12px 18px;font-weight:900;background:#ffd43b}
+.round{width:42px;height:42px;border-radius:50%;border:0;background:#b7bad2;font-size:22px}
+.level{background:#aaaec6;color:white;padding:6px 28px;border-radius:6px;text-align:center;font-weight:900;text-shadow:1px 1px #000}
+.hearts{color:red;font-size:18px;letter-spacing:2px}
+.tip{margin:10px auto;width:180px;text-align:center;border:2px solid #d5e0ff;border-radius:8px;padding:7px;font-weight:800}
+.stage{flex:1;display:flex;align-items:center;justify-content:center;position:relative}
+.board{width:min(82vw,390px);height:min(82vw,390px);position:relative}
+.dot{position:absolute;width:4px;height:4px;background:#999;border-radius:50%}
+.arrow{position:absolute;width:40px;height:40px;display:flex;align-items:center;justify-content:center;font-size:44px;font-weight:900;cursor:pointer;transition:.3s}
+.arrow.bad{animation:shake .25s linear 2}
+@keyframes shake{25%{transform:translateX(-8px)}50%{transform:translateX(8px)}75%{transform:translateX(-5px)}}
+.footer{height:85px;background:#deddf4;display:flex;align-items:center;justify-content:center;gap:10px}
+.blue{background:#4dabf7;color:white}.red{background:#ff6b6b;color:white}
+.modal{position:absolute;inset:0;background:#0008;display:none;align-items:center;justify-content:center;z-index:10}
+.box{background:white;border-radius:22px;padding:24px;text-align:center;width:85%;max-width:350px}
 </style>
 </head>
 <body>
-<h1>GAME TEST WORKING</h1>
-<p>Arrow Escape</p>
+<div class="game">
+  <div class="top">
+    <button class="round" onclick="restart()">↻</button>
+    <div class="level">Level <span id="lv">1</span><div class="hearts" id="hp">♥♥♥</div></div>
+    <button class="round" onclick="hint()">💡</button>
+  </div>
+  <div class="tip" id="tip">Tap Arrow</div>
+  <div class="stage">
+    <div class="board" id="board"></div>
+    <div class="modal" id="modal">
+      <div class="box">
+        <h2 id="mt">Level Clear!</h2>
+        <p id="md">Next level unlocked.</p><br>
+        <button class="btn blue" onclick="nextLevel()">Next Level</button>
+      </div>
+    </div>
+  </div>
+  <div class="footer">
+    <button class="btn red" onclick="restart()">Retry</button>
+    <button class="btn blue" onclick="hint()">Hint</button>
+  </div>
+</div>
+
+<script>
+const N=7;
+const board=document.getElementById("board");
+const dirs={up:[0,-1,"↑"],right:[1,0,"→"],down:[0,1,"↓"],left:[-1,0,"←"]};
+
+let level=Number(localStorage.getItem("level")||1);
+let hp=3, arrows=[], busy=false;
+
+const manual=[
+[{x:0,y:4,d:"right"},{x:3,y:4,d:"down"},{x:4,y:2,d:"up"}],
+[{x:0,y:0,d:"left"},{x:2,y:2,d:"up"},{x:4,y:2,d:"right"},{x:3,y:5,d:"down"}],
+[{x:1,y:1,d:"right"},{x:4,y:1,d:"down"},{x:4,y:4,d:"left"},{x:2,y:4,d:"up"}],
+[{x:0,y:3,d:"right"},{x:2,y:3,d:"right"},{x:5,y:3,d:"left"},{x:6,y:1,d:"up"}],
+[{x:1,y:5,d:"up"},{x:1,y:2,d:"right"},{x:4,y:2,d:"down"},{x:4,y:5,d:"left"},{x:6,y:6,d:"right"}]
+];
+
+function rnd(seed){let x=Math.sin(seed)*10000;return x-Math.floor(x)}
+
+function gen(lv){
+  if(lv<=manual.length)return manual[lv-1].map((a,i)=>({...a,id:i}));
+  let arr=[], seed=lv*999, count=Math.min(28,5+Math.floor(lv/2));
+  let names=["up","right","down","left"];
+  for(let i=0;i<count;i++){
+    let x=Math.floor(rnd(seed+i*7)*N);
+    let y=Math.floor(rnd(seed+i*13)*N);
+    if(arr.some(a=>a.x==x&&a.y==y)){i--;continue}
+    arr.push({x,y,d:names[Math.floor(rnd(seed+i*19)*4)],id:i});
+  }
+  return arr;
+}
+
+function size(){return board.clientWidth/N}
+
+function load(){
+  hp=3;busy=false;arrows=gen(level);
+  document.getElementById("lv").innerText=level;
+  document.getElementById("hp").innerText="♥♥♥";
+  document.getElementById("tip").innerText="Tap Arrow";
+  document.getElementById("modal").style.display="none";
+  draw();
+}
+
+function draw(){
+  board.innerHTML="";
+  let s=size();
+
+  for(let y=0;y<N;y++){
+    for(let x=0;x<N;x++){
+      let d=document.createElement("div");
+      d.className="dot";
+      d.style.left=x*s+s/2-2+"px";
+      d.style.top=y*s+s/2-2+"px";
+      board.appendChild(d);
+    }
+  }
+
+  arrows.forEach(a=>{
+    let e=document.createElement("div");
+    e.className="arrow";
+    e.innerText=dirs[a.d][2];
+    e.dataset.id=a.id;
+    e.style.left=a.x*s+s/2-20+"px";
+    e.style.top=a.y*s+s/2-20+"px";
+    e.onclick=()=>tap(a.id);
+    board.appendChild(e);
+  });
+}
+
+function tap(id){
+  if(busy)return;
+  let a=arrows.find(v=>v.id==id);
+  let [dx,dy]=dirs[a.d];
+
+  let blocked=arrows.find(b=>{
+    if(b.id==a.id)return false;
+    if(dx!==0)return b.y==a.y && ((dx>0&&b.x>a.x)||(dx<0&&b.x<a.x));
+    return b.x==a.x && ((dy>0&&b.y>a.y)||(dy<0&&b.y<a.y));
+  });
+
+  let el=[...document.querySelectorAll(".arrow")].find(e=>+e.dataset.id==id);
+
+  if(blocked){
+    hp--;
+    document.getElementById("hp").innerText="♥".repeat(hp);
+    document.getElementById("tip").innerText="Blocked!";
+    el.classList.add("bad");
+    setTimeout(()=>el.classList.remove("bad"),500);
+    if(hp<=0)setTimeout(()=>show("Game Over","Retry level."),400);
+    return;
+  }
+
+  busy=true;
+  let dist=board.clientWidth*1.2;
+  el.style.transform=`translate(${dx*dist}px,${dy*dist}px)`;
+  el.style.opacity="0";
+
+  setTimeout(()=>{
+    arrows=arrows.filter(v=>v.id!=id);
+    busy=false;
+    draw();
+    document.getElementById("tip").innerText=arrows.length+" arrows left";
+    if(arrows.length==0)clearLevel();
+  },300);
+}
+
+function clearLevel(){
+  localStorage.setItem("level",level+1);
+  show("Level Clear!","Good job. Next level unlocked.");
+}
+
+function show(t,d){
+  document.getElementById("mt").innerText=t;
+  document.getElementById("md").innerText=d;
+  document.getElementById("modal").style.display="flex";
+}
+
+function nextLevel(){
+  if(level<20)level++;
+  localStorage.setItem("level",level);
+  load();
+}
+
+function restart(){load()}
+function hint(){document.getElementById("tip").innerText="Choose arrow with clear path."}
+
+window.addEventListener("resize",draw);
+load();
+</script>
 </body>
 </html>
