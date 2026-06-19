@@ -3,49 +3,42 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>Arrow Escape India 60</title>
+<title>Cat Arrow Maze</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;font-family:Arial,Helvetica,sans-serif}
-body{height:100vh;background:#fff;overflow:hidden;color:#111735}
-.game{max-width:520px;height:100vh;margin:auto;background:#fff;display:flex;flex-direction:column}
-.top{height:86px;background:#deddf4;display:flex;align-items:center;justify-content:center;gap:24px}
-.round{width:44px;height:44px;border:0;border-radius:50%;background:#b8bbd4;font-size:22px;font-weight:900}
-.level{min-width:220px;background:#aeb1ca;color:#fff;border-radius:8px;padding:7px 10px;text-align:center;font-weight:900;text-shadow:1px 1px #000}
-.hearts{color:#f0183c;font-size:18px;letter-spacing:3px;margin-top:2px}
-.tip{margin:10px auto 0;width:260px;border:2px solid #d7e2ff;border-radius:10px;padding:8px;text-align:center;font-weight:900}
+body{height:100vh;background:#0f1628;overflow:hidden;color:#dbe5ff}
+.game{max-width:520px;height:100vh;margin:auto;background:#111a2e;display:flex;flex-direction:column}
+.top{height:78px;background:#151f36;display:flex;align-items:center;justify-content:space-around}
+.coin{font-weight:900}.heart{color:#ff4668;font-size:24px;letter-spacing:6px}.hard{font-size:12px;background:#202c48;padding:7px 12px;border-radius:8px;font-weight:900}
+.tip{margin:8px auto 0;width:250px;border:2px solid #31436b;border-radius:10px;padding:8px;text-align:center;font-weight:900}
 .stage{flex:1;display:flex;align-items:center;justify-content:center;position:relative}
-.board{width:min(94vw,470px);height:min(94vw,470px);position:relative}
-.arrow{position:absolute;display:flex;align-items:center;justify-content:center;font-weight:900;line-height:1;cursor:pointer;transition:.20s;color:#111735;user-select:none}
-.arrow.bad{animation:shake .22s linear 2}
+#svg{width:min(94vw,470px);height:min(94vw,470px)}
+.path{cursor:pointer;transition:.22s;transform-box:fill-box;transform-origin:center}
+.path.bad{animation:shake .22s linear 2}
 @keyframes shake{25%{transform:translateX(-5px)}50%{transform:translateX(5px)}75%{transform:translateX(-3px)}}
-.footer{height:84px;background:#deddf4;display:flex;align-items:center;justify-content:center;gap:10px}
-.btn{border:0;border-radius:14px;padding:12px 18px;font-weight:900;background:#ffd43b;color:#1b1b1b}
+.footer{height:78px;background:#151f36;display:flex;align-items:center;justify-content:center;gap:16px}
+.btn{border:0;border-radius:14px;padding:12px 18px;font-weight:900;background:#ffd43b;color:#101426}
 .blue{background:#4dabf7;color:#fff}.red{background:#ff6b6b;color:#fff}
-.modal{position:absolute;inset:0;background:#0008;display:none;align-items:center;justify-content:center;z-index:20}
-.box{background:#fff;border-radius:22px;padding:24px;text-align:center;width:88%;max-width:370px}
+.modal{position:absolute;inset:0;background:#0009;display:none;align-items:center;justify-content:center;z-index:20}
+.box{background:white;color:#111735;border-radius:22px;padding:24px;text-align:center;width:88%;max-width:370px}
 </style>
 </head>
 <body>
 <div class="game">
   <div class="top">
-    <button class="round" onclick="restart()">↻</button>
-    <div class="level">Level <span id="levelText">1 - India</span><div class="hearts" id="hearts">♥♥♥</div></div>
-    <button class="round" onclick="hint()">💡</button>
+    <div class="coin">⚑ 1</div>
+    <div class="heart" id="hearts">♥♥♥</div>
+    <div class="hard">CAT</div>
   </div>
-
-  <div class="tip" id="tip">India Map • Tap outer arrows</div>
-
+  <div class="tip" id="tip">Cat maze • tap clear paths</div>
   <div class="stage">
-    <div class="board" id="board"></div>
-    <div class="modal" id="modal">
-      <div class="box">
-        <h2 id="mt">Level Clear!</h2>
-        <p id="md">India level complete.</p><br>
-        <button class="btn blue" onclick="restart()">Play Again</button>
-      </div>
-    </div>
+    <svg id="svg" viewBox="0 0 470 470"></svg>
+    <div class="modal" id="modal"><div class="box">
+      <h2 id="mt">Level Clear!</h2>
+      <p id="md">Cat maze complete.</p><br>
+      <button class="btn blue" onclick="restart()">Play Again</button>
+    </div></div>
   </div>
-
   <div class="footer">
     <button class="btn red" onclick="restart()">Retry</button>
     <button class="btn blue" onclick="hint()">Hint</button>
@@ -53,191 +46,140 @@ body{height:100vh;background:#fff;overflow:hidden;color:#111735}
 </div>
 
 <script>
-const board=document.getElementById("board");
-const N=60;
-const dirs={up:[0,-1,"↑"],right:[1,0,"→"],down:[0,1,"↓"],left:[-1,0,"←"]};
-let hp=3, arrows=[], busy=false;
+const svg=document.getElementById("svg");
+const NS="http://www.w3.org/2000/svg";
+let hp=3,busy=false,paths=[];
 
-const indiaMask=[
-  "............XXXXXX..........................................",
-  "...........XXXXXXXX...XX....................................",
-  "..........XXXXXXXXXXXXXXXX..................................",
-  "..........XXXXXXXXXXXXXXXX..................................",
-  "............XXXXXXXXXXXXXX..................................",
-  "............XXXXXXXXXXXXX...................................",
-  "............XXXXXXXXXXXXX...................................",
-  "............XXXXXXXXXXXXX...................................",
-  "............XXXXXXXXXXXXX...................................",
-  "............XXXXXXXXXXXXX...................................",
-  "..............XXXXXXXXXX.............................X......",
-  "..............XXXXXXXXXXX.........................XXXXX.....",
-  "..............XXXXXXXXXXXXX......................XXXXXXXX...",
-  ".............XXXXXXXXXXXXXXX....................XXXXXXXXX...",
-  "............XXXXXXXXXXXXXXXX...................XXXXXXXXXX...",
-  "............XXXXXXXXXXXXXXX.............XX....XXXXXXXXXXX...",
-  "...........XXXXXXXXXXXXXXXXX...........XXX...XXXXXXXXXXXX...",
-  "..........XXXXXXXXXXXXXXXXXXXX.........XXXX.XXXXXXXXXXX.....",
-  ".......XXXXXXXXXXXXXXXXXXXXXXXXXXXX....XXXXXXXXXXXXXXX......",
-  "......XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX......",
-  ".....XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX......",
-  ".....XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX......",
-  ".....XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX......",
-  "......XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX...XXXXXXX.......",
-  ".......XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX...XXXXXX........",
-  "........XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX..XXXXXX........",
-  "...XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX..XXXXXX........",
-  "...XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX.....XXX........",
-  "...XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX....XX.........",
-  "...XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX...............",
-  "....XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX................",
-  "....XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX...................",
-  ".....XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX...................",
-  "......XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX....................",
-  ".......XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX....................",
-  "...........XXXXXXXXXXXXXXXXXXXXXXXXXXX......................",
-  "...........XXXXXXXXXXXXXXXXXXXXXXXXXX.......................",
-  "............XXXXXXXXXXXXXXXXXXXXXXXX........................",
-  "............XXXXXXXXXXXXXXXXXXXXXXXX........................",
-  "............XXXXXXXXXXXXXXXXXXXXXXX.........................",
-  "............XXXXXXXXXXXXXXXXXXXXXX..........................",
-  ".............XXXXXXXXXXXXXXXXXXXX...........................",
-  ".............XXXXXXXXXXXXXXXXXXX............................",
-  ".............XXXXXXXXXXXXXXXXX..............................",
-  ".............XXXXXXXXXXXXXXXX...............................",
-  "..............XXXXXXXXXXXXXXX...............................",
-  "..............XXXXXXXXXXXXXXX...............................",
-  "...............XXXXXXXXXXXXXX...............................",
-  "................XXXXXXXXXXXXX...............................",
-  "................XXXXXXXXXXXXX...............................",
-  "................XXXXXXXXXXXXX...............................",
-  ".................XXXXXXXXXXXX...............................",
-  ".................XXXXXXXXXXXX...............................",
-  "..................XXXXXXXXXXX...............................",
-  "...................XXXXXXXXXX...............................",
-  "...................XXXXXXXXX................................",
-  "...................XXXXXXXXXX...............................",
-  "....................XXXXXXXXX...............................",
-  "....................XXXXXX..................................",
-  ".....................XXXXX.................................."
-];
-
-function rnd(seed){let x=Math.sin(seed)*10000;return x-Math.floor(x)}
-
-function inIndia(x,y){
-  return indiaMask[y] && indiaMask[y][x]==="X";
+function p(id,d,out){
+  return {id,d,out};
 }
 
-function outward(x,y){
-  let c=(N-1)/2, dx=x-c, dy=y-c;
-  if(Math.abs(dx)>=Math.abs(dy)) return dx>=0?"right":"left";
-  return dy>=0?"down":"up";
+function makeCatLevel(){
+  let list=[
+    p(1,"M75 360 L75 250 L95 250 L95 235", "up"),
+    p(2,"M95 400 L95 310 L120 310 L120 270", "up"),
+    p(3,"M115 430 L115 375 L150 375 L150 350 L130 350", "left"),
+    p(4,"M140 420 L220 420 L220 400 L245 400", "right"),
+    p(5,"M245 430 L245 370 L290 370 L290 405 L330 405", "right"),
+    p(6,"M330 430 L330 390 L360 390 L360 430", "down"),
+    p(7,"M365 420 L430 420 L430 440", "down"),
+    p(8,"M65 320 L45 320 L45 270 L60 270", "right"),
+    p(9,"M55 245 L55 210 L78 210 L78 180", "up"),
+    p(10,"M90 210 L90 160 L115 160 L115 135", "up"),
+    p(11,"M110 130 L110 85 L135 85 L135 60", "up"),
+    p(12,"M150 70 L185 70 L185 105 L170 105", "left"),
+    p(13,"M190 55 L240 55 L240 85 L265 85", "right"),
+    p(14,"M270 70 L270 35 L310 35 L310 55", "right"),
+    p(15,"M330 55 L360 55 L360 100 L345 100", "left"),
+    p(16,"M365 90 L395 90 L395 155 L420 155", "right"),
+    p(17,"M420 175 L440 175 L440 210 L420 210", "left"),
+    p(18,"M410 230 L445 230 L445 265 L430 265", "left"),
+    p(19,"M410 280 L445 280 L445 330 L420 330", "left"),
+    p(20,"M390 340 L430 340 L430 365 L445 365", "right"),
+    p(21,"M155 150 L155 200 L135 200 L135 235", "down"),
+    p(22,"M175 145 L225 145 L225 175 L250 175", "right"),
+    p(23,"M250 130 L250 105 L285 105 L285 130", "down"),
+    p(24,"M300 125 L330 125 L330 170 L310 170", "left"),
+    p(25,"M345 145 L375 145 L375 195 L355 195", "left"),
+    p(26,"M155 245 L210 245 L210 220 L235 220", "right"),
+    p(27,"M235 205 L235 180 L280 180 L280 205", "down"),
+    p(28,"M290 215 L320 215 L320 250 L300 250", "left"),
+    p(29,"M335 215 L375 215 L375 250 L400 250", "right"),
+    p(30,"M150 270 L185 270 L185 310 L160 310", "left"),
+    p(31,"M200 265 L245 265 L245 300 L220 300", "left"),
+    p(32,"M260 265 L260 325 L300 325 L300 350", "down"),
+    p(33,"M315 270 L360 270 L360 310 L335 310", "left"),
+    p(34,"M370 285 L405 285 L405 320 L425 320", "right"),
+    p(35,"M145 335 L195 335 L195 360 L220 360", "right"),
+    p(36,"M225 335 L255 335 L255 360 L275 360", "right"),
+    p(37,"M285 330 L345 330 L345 355 L365 355", "right"),
+    p(38,"M120 235 L120 255 L95 255 L95 275", "down"),
+    p(39,"M180 205 L180 230 L160 230 L160 250", "down"),
+    p(40,"M280 235 L280 255 L255 255 L255 280", "down"),
+    p(41,"M390 200 L410 200 L410 225 L430 225", "right"),
+    p(42,"M70 390 L45 390 L45 350 L60 350", "right"),
+    p(43,"M140 455 L190 455 L190 440", "up"),
+    p(44,"M230 455 L275 455 L275 430", "up"),
+    p(45,"M315 455 L380 455 L380 435", "up")
+  ];
+  return list;
 }
 
-function isBorderCell(x,y){
-  for(let yy=-1; yy<=1; yy++){
-    for(let xx=-1; xx<=1; xx++){
-      if(!inIndia(x+xx,y+yy)) return true;
-    }
-  }
-  return false;
+function svgEl(n,a){
+  let e=document.createElementNS(NS,n);
+  for(let k in a)e.setAttribute(k,a[k]);
+  return e;
 }
 
-function generate(){
-  let arr=[], id=0, seed=101;
-
-  for(let y=0;y<N;y++){
-    for(let x=0;x<N;x++){
-      if(!inIndia(x,y)) continue;
-
-      // 60x60 ma 700-900 arrows approx; shape clear dekhase
-      if(rnd(seed+x*31+y*37)>0.68) continue;
-
-      let border=isBorderCell(x,y);
-      let d=outward(x,y);
-
-      // Border arrows always outside; only inner arrows random
-      if(!border && rnd(seed+x*17+y*23)>0.84){
-        let all=["up","right","down","left"];
-        d=all[Math.floor(rnd(seed+x*13+y*29)*4)];
-      }
-
-      arr.push({x,y,d,border,id:id++});
-    }
-  }
-  return arr;
-}
-
-function cell(){return board.clientWidth/N}
-
-function load(){
-  hp=3; busy=false; arrows=generate();
-  document.getElementById("hearts").innerText="♥♥♥";
-  document.getElementById("tip").innerText="India Map • "+arrows.length+" arrows";
-  document.getElementById("modal").style.display="none";
-  draw();
+function headFor(d,out){
+  let nums=d.match(/-?\d+(\.\d+)?/g).map(Number);
+  let ex=nums[nums.length-2], ey=nums[nums.length-1], h=7;
+  if(out==="right") return ` M ${ex-h} ${ey-h} L ${ex} ${ey} L ${ex-h} ${ey+h}`;
+  if(out==="left") return ` M ${ex+h} ${ey-h} L ${ex} ${ey} L ${ex+h} ${ey+h}`;
+  if(out==="up") return ` M ${ex-h} ${ey+h} L ${ex} ${ey} L ${ex+h} ${ey+h}`;
+  return ` M ${ex-h} ${ey-h} L ${ex} ${ey} L ${ex+h} ${ey-h}`;
 }
 
 function draw(){
-  board.innerHTML="";
-  let s=cell();
-
-  arrows.forEach(a=>{
-    let e=document.createElement("div");
-    e.className="arrow";
-    e.innerText=dirs[a.d][2];
-    e.dataset.id=a.id;
-
-    let length=5+Math.floor(rnd(999+a.x*31+a.y*17)*5);
-    if(a.border) length += 2;
-    let size=Math.max(5,Math.min(12,length));
-
-    e.style.fontSize=size+"px";
-    e.style.width=length+"px";
-    e.style.height=length+"px";
-    e.style.left=a.x*s+s/2-length/2+"px";
-    e.style.top=a.y*s+s/2-length/2+"px";
-
-    e.onclick=()=>tap(a.id);
-    board.appendChild(e);
+  svg.innerHTML="";
+  // small decorative points
+  [[18,18],[450,18],[18,450],[450,450]].forEach(pt=>{
+    svg.appendChild(svgEl("circle",{cx:pt[0],cy:pt[1],r:2,fill:"#6d7895"}));
+  });
+  paths.forEach(o=>{
+    let el=svgEl("path",{
+      d:o.d+headFor(o.d,o.out),
+      stroke:"#d5def8",
+      "stroke-width":"4",
+      fill:"none",
+      "stroke-linecap":"round",
+      "stroke-linejoin":"round",
+      class:"path",
+      "data-id":o.id
+    });
+    el.onclick=()=>tap(o.id);
+    svg.appendChild(el);
   });
 }
 
-function isBlocked(a,b,dx,dy){
-  if(dx!==0) return b.y===a.y && ((dx>0&&b.x>a.x)||(dx<0&&b.x<a.x));
-  return b.x===a.x && ((dy>0&&b.y>a.y)||(dy<0&&b.y<a.y));
+function lastPoint(d){
+  let nums=d.match(/-?\d+(\.\d+)?/g).map(Number);
+  return {x:nums[nums.length-2],y:nums[nums.length-1]};
+}
+
+function blocked(a,b){
+  let A=lastPoint(a.d), B=lastPoint(b.d);
+  if(a.out==="right") return Math.abs(B.y-A.y)<18 && B.x>A.x;
+  if(a.out==="left") return Math.abs(B.y-A.y)<18 && B.x<A.x;
+  if(a.out==="up") return Math.abs(B.x-A.x)<18 && B.y<A.y;
+  return Math.abs(B.x-A.x)<18 && B.y>A.y;
 }
 
 function tap(id){
   if(busy)return;
-  let a=arrows.find(v=>v.id===id);
-  if(!a)return;
-
-  let [dx,dy]=dirs[a.d];
-  let blocked=arrows.find(b=>b.id!==a.id && isBlocked(a,b,dx,dy));
-  let el=[...document.querySelectorAll(".arrow")].find(e=>+e.dataset.id===id);
-
-  if(blocked){
+  let a=paths.find(x=>x.id===id);
+  let block=paths.find(x=>x.id!==id && blocked(a,x));
+  let el=svg.querySelector(`[data-id="${id}"]`);
+  if(block){
     hp--;
     document.getElementById("hearts").innerText="♥".repeat(hp);
-    document.getElementById("tip").innerText="Blocked! Outer arrows first";
+    document.getElementById("tip").innerText="Blocked! Try another path";
     el.classList.add("bad");
-    setTimeout(()=>el.classList.remove("bad"),300);
-    if(hp<=0)setTimeout(()=>show("Game Over","Retry India level."),250);
+    setTimeout(()=>el.classList.remove("bad"),350);
+    if(hp<=0)setTimeout(()=>show("Game Over","Retry cat level."),250);
     return;
   }
-
   busy=true;
-  let dist=board.clientWidth*1.25;
-  el.style.transform=`translate(${dx*dist}px,${dy*dist}px)`;
+  let move={right:[600,0],left:[-600,0],up:[0,-600],down:[0,600]}[a.out];
+  el.style.transform=`translate(${move[0]}px,${move[1]}px)`;
   el.style.opacity="0";
-
   setTimeout(()=>{
-    arrows=arrows.filter(v=>v.id!==id);
+    paths=paths.filter(x=>x.id!==id);
     busy=false;
     draw();
-    document.getElementById("tip").innerText="India Map • "+arrows.length+" arrows left";
-    if(arrows.length===0)show("Level Clear!","India level complete.");
-  },160);
+    document.getElementById("tip").innerText="Cat maze • "+paths.length+" paths left";
+    if(paths.length===0)show("Level Clear!","Cat maze complete.");
+  },220);
 }
 
 function show(t,d){
@@ -246,11 +188,16 @@ function show(t,d){
   document.getElementById("modal").style.display="flex";
 }
 
-function restart(){load()}
-function hint(){document.getElementById("tip").innerText="Border arrows face outside. Clear them first."}
-
-window.addEventListener("resize",draw);
-load();
+function restart(){
+  hp=3;
+  paths=makeCatLevel();
+  document.getElementById("hearts").innerText="♥♥♥";
+  document.getElementById("tip").innerText="Cat maze • "+paths.length+" paths";
+  document.getElementById("modal").style.display="none";
+  draw();
+}
+function hint(){document.getElementById("tip").innerText="Tap paths with open arrow direction."}
+restart();
 </script>
 </body>
 </html>
